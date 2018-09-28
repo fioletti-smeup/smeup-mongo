@@ -1,0 +1,81 @@
+{
+    "builders": [
+        {
+            "type": "virtualbox-iso",
+            "iso_url": "{{user `iso_file`}}",
+            "iso_checksum": "{{user `iso_checksum`}}",
+            "iso_checksum_type": "{{user `type`}}",
+            "headless": "{{user `headless`}}",
+            "vm_name": "{{user `vm_name`}}-{{user `version`}}",
+            "guest_os_type": "RedHat_64",
+            "disk_size": "{{user `disk_size`}}",
+            "vboxmanage": [
+                [
+                    "modifyvm",
+                    "{{.Name}}",
+                    "--memory",
+                    "{{user `memsize`}}"
+                ],
+                [
+                    "modifyvm",
+                    "{{.Name}}",
+                    "--cpus",
+                    "{{user `numvcpus`}}"
+                ],
+                [
+                    "modifyvm",
+                    "{{.Name}}",
+                    "--vram",
+                    "10"
+                ]
+            ],
+            "boot_wait": "20s",
+            "http_directory": "{{user `http_directory`}}",
+            "boot_command": [
+                "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter>"
+            ],
+            "ssh_username": "{{user `ssh_username`}}",
+            "ssh_password": "{{user `ssh_password`}}",
+            "ssh_pty": "true",
+            "ssh_wait_timeout": "20m",
+            "format": "ova",
+            "guest_additions_mode": "disable",
+            "shutdown_command": "shutdown -P now"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "file",
+            "source": "./mongodb-org-4.0.repo",
+            "destination": "/root/mongodb-org-4.0.repo"
+        },
+        {
+            "type": "file",
+            "source": "./mongod.conf",
+            "destination": "/root/mongod.conf"
+        },
+        {
+            "type": "file",
+            "source": "./mongoAdminSetup.js",
+            "destination": "/root/mongoAdminSetup.js"
+        },
+        {
+            "type": "shell",
+            "scripts": "{{user `scripts`}}"
+        }
+    ],
+    "post-processors": [
+        {
+            "type": "amazon-import",
+            "ami_name": "{{user `ami_name`}}",
+            "access_key": "AKIAJN2UJYJD2ZNALWQQ",
+            "secret_key": "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",
+            "region": "eu-west-1",
+            "s3_bucket_name": "smeup-amis",
+            "license_type": "BYOL",
+            "tags": {
+                "Description": "SmeUP AMIs"
+            }
+        }
+    ]
+}
